@@ -1,4 +1,4 @@
-package canalesseguros;
+package canalesSeguros;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -15,8 +15,7 @@ public class CifradoSimetrico {
 	public byte[] cifrar() {
 		byte[] cipheredText;
 		
-		try {
-			
+		try {			
 			KeyGenerator keygen = KeyGenerator.getInstance(ALGORITMO);
 			desKey = keygen.generateKey();
 			Cipher cipher = Cipher.getInstance(ALGORITMO);

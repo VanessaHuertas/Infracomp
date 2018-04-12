@@ -1,4 +1,4 @@
-package canalesseguros;
+package canalesSeguros;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -9,6 +9,7 @@ public class Digest {
 	private byte[] getKeyDigest(byte[] buffer)
 	{
 		try {
+			
 			MessageDigest md5 = MessageDigest.getInstance("MD5");
 			md5.update(buffer);
 			return md5.digest();
@@ -36,7 +37,8 @@ public class Digest {
 	}
 
 	public boolean verificar(byte[] pCodigo)
-	{		
+	{	
+		//Revisar
 		boolean si = false;
 		byte[] pCodigoCalculado = calcular();
 

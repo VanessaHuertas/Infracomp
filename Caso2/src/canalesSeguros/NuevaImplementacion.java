@@ -1,4 +1,4 @@
-package canalesseguros;
+package canalesSeguros;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;

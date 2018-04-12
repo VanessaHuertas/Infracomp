@@ -1,4 +1,4 @@
-package canalesseguros;
+package canalesSeguros;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
@@ -24,6 +24,7 @@ public class CifradoAsimetrico {
 			byte[] clearText = pwd.getBytes();
 			String s1 = new String(clearText);
 			System.out.println("Clave original: " + s1);
+			
 			System.out.println("");
 			cipher.init(Cipher.ENCRYPT_MODE, keyPair.getPublic());
 			long startTime = System.nanoTime();
@@ -31,6 +32,7 @@ public class CifradoAsimetrico {
 			long endTime = System.nanoTime();
 			System.out.println("Clave cifrada: " + cipheredText);
 			System.out.println("Tiempo asimétrico: " + (endTime-startTime));
+			
 			return cipheredText;
 			
 		}catch(Exception e) {
@@ -47,6 +49,7 @@ public class CifradoAsimetrico {
 			byte[] clearText = cipher.doFinal(cipheredText);
 			String s3 = new String(clearText);
 			System.out.println("Calve descifrada: " + s3);
+			
 		}catch (Exception e) {
 			System.out.println("Excepción: " + e.getMessage());
 		}
