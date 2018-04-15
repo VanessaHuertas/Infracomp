@@ -25,7 +25,7 @@ public class Cliente{
 		PrintWriter escritor = null;
 		BufferedReader lector = null;
 		try {
-			socket = new Socket(IP, 8080);
+			socket = new Socket(IP, 8084);
 			escritor = new PrintWriter(socket.getOutputStream(), true);
 			lector = new BufferedReader(new InputStreamReader(
 					socket.getInputStream()));
@@ -65,22 +65,22 @@ public class Cliente{
 		{
 			switch (estado) {
 			case 0:
-				if (inputLine.equalsIgnoreCase("OK")) 
+				if (inputLine.equalsIgnoreCase("INICIO")) 
 				{
 					outputLine = "ALGORITMOS:AES:RSA:HMACMD5";
 					estado++;
 				} 
 				else 
 				{
-					outputLine = "ERROR-EsperabaOk";
+					outputLine = "ERROR-EsperabaInicio";
 					estado = 0;
 				}
 				pOut.println(outputLine);
 				break;
 			case 1:
-				if(inputLine.equalsIgnoreCase("OK"))
+				if(inputLine.equalsIgnoreCase("ESTADO:OK"))
 				{
-					outputLine = cert.create(new Date(), new Date(), "RSA", 512, "SHA1withRSA");
+					outputLine = "CERTCLNT";
 					estado++;
 				}
 				else
@@ -89,22 +89,52 @@ public class Cliente{
 					estado = 0;
 				}
 				pOut.println(outputLine);
+				
+				outputLine = cert.create(new Date(), new Date(), "RSA", 512, "SHA1withRSA");
+				pOut.println(outputLine);
+				break;
+				
+			case 2:
+				if(inputLine.equalsIgnoreCase("ESTADO:OK"))
+				{
+					estado++;
+				}
+				else
+				{
+					outputLine = "ERROR-EsperabaOk";
+					pOut.println(outputLine);
+					estado = 0;
+				}
+				break;
+			case 3:
+				if(inputLine.equalsIgnoreCase("CERTSRV"))
+				{
+					estado++;
+				}
+				else
+				{
+					outputLine = "ERROR-EsperabaCERTSRV";
+					pOut.println(outputLine);
+					estado = 0;
+				}
+				break;
+			case 4:
 				String pem = leerCertificado(pIn);		
 				if (pem.startsWith("-----BEGIN CERTIFICATE-----") && cert.readCertificate(pem)) 
 				{
-					byte[] act1Bytes = outputLine.getBytes();
+//					byte[] act1Bytes = outputLine.getBytes();
 
-					byte[] act1Cifrado = Seguridad.aE(act1Bytes, cert.getServerPublicKey(), Seguridad.RSA);
-					String act1CifradoStr = Transformacion.toHexString(act1Cifrado);
+//					byte[] act1Cifrado = Seguridad.aE(act1Bytes, cert.getServerPublicKey(), Seguridad.RSA);
+//					String act1CifradoStr = Transformacion.toHexString(act1Cifrado);
 				} 
 				else 
 				{
 					outputLine = "ERROR-EsperabaCertificado";
 					estado = 0;
 				}
-				pOut.println(outputLine);
+//				pOut.println(outputLine);
 				break;
-			case 2:
+			case 5:
 				inputLine = pIn.readLine();
 				byte[] numCifrado = Transformacion.toByteArray(inputLine);
 				byte[] num = Cifrado.descifrar(numCifrado, cert.getOwnPrivateKey(), "RSA");
@@ -122,7 +152,7 @@ public class Cliente{
 				}
 				pOut.println(outputLine);
 				break;
-			case 3:
+			case 6:
 				byte[] numCifrado2 = Transformacion.toByteArray(inputLine);
 				byte[] num2 = Cifrado.descifrar(numCifrado2, cert.getOwnPrivateKey(), "RSA");
 
@@ -131,7 +161,7 @@ public class Cliente{
 				estado++;
 				pOut.println(outputLine);
 				break;
-			case 5:
+			case 7:
 				String[] input = inputLine.split(":");
 				byte[] hexInput1 = Transformacion.toByteArray(input[0]);
 				byte[] hexInput2 = Transformacion.toByteArray(input[1]);
