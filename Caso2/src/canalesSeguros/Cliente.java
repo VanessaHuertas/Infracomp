@@ -2,7 +2,9 @@ package canalesSeguros;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.Date;
@@ -37,7 +39,7 @@ public class Cliente{
 				new InputStreamReader(System.in));
 		try
 		{
-			comenzar(lector,escritor);			
+			comenzar(lector, escritor, socket.getInputStream(), socket.getOutputStream());			
 		}
 		catch (Exception e)
 		{
@@ -52,12 +54,14 @@ public class Cliente{
 
 	}
 
-	public static void comenzar(BufferedReader pIn,PrintWriter pOut) throws Exception 
+	public static void comenzar(BufferedReader pIn, PrintWriter pOut, InputStream iS, OutputStream oS) throws Exception 
 	{
 		byte[] reto = new byte[1];
 
 		String inputLine, outputLine;
+		String certString = "";
 		int estado = 0;
+		
 		pOut.println("HOLA");
 
 		boolean finalizo = false;
@@ -90,8 +94,8 @@ public class Cliente{
 				}
 				pOut.println(outputLine);
 				
-				outputLine = cert.create(new Date(), new Date(), "RSA", 512, "SHA1withRSA");
-				pOut.println(outputLine);
+				byte[] bytes = cert.createBytes(new Date(), new Date(), "RSA", 512, "SHA1withRSA");
+				oS.write(bytes);
 				break;
 				
 			case 2:
@@ -122,17 +126,18 @@ public class Cliente{
 				String pem = leerCertificado(pIn);		
 				if (pem.startsWith("-----BEGIN CERTIFICATE-----") && cert.readCertificate(pem)) 
 				{
-//					byte[] act1Bytes = outputLine.getBytes();
+					byte[] act1Bytes = certString.getBytes();
 
-//					byte[] act1Cifrado = Seguridad.aE(act1Bytes, cert.getServerPublicKey(), Seguridad.RSA);
-//					String act1CifradoStr = Transformacion.toHexString(act1Cifrado);
+					byte[] act1Cifrado = Seguridad.aE(act1Bytes, cert.getServerPublicKey(), Seguridad.RSA);
+					String act1CifradoStr = Transformacion.toHexString(act1Cifrado);
+					outputLine = "OK";
 				} 
 				else 
 				{
 					outputLine = "ERROR-EsperabaCertificado";
 					estado = 0;
 				}
-//				pOut.println(outputLine);
+				pOut.println(outputLine);
 				break;
 			case 5:
 				inputLine = pIn.readLine();

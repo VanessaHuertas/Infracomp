@@ -60,6 +60,13 @@ public class Certificado {
 		return convertCertificateToPEM(Seguridad.generateV3Certificate(own));
 	}
 	
+	public byte[] createBytes(Date start, Date expiry, String encryptionType, int bitCount, String signatureAlgoritm) throws Exception
+	{		
+		KeyPair keyPair = createKeyPair(encryptionType, bitCount);
+		own = keyPair;
+		return Seguridad.generateV3Certificate(own).getEncoded();
+	}
+	
 	public boolean readCertificate(String pem)
 	{
 		try 
