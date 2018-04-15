@@ -141,10 +141,17 @@ public class Cliente{
 				break;
 			case 5:
 				inputLine = pIn.readLine();
-				byte[] numCifrado = Transformacion.toByteArray(inputLine);
-				byte[] num = Cifrado.descifrar(numCifrado, cert.getOwnPrivateKey(), "RSA");
+				byte[] act1B = inputLine.getBytes();
+				String act1S = new String(act1B);
+				System.out.println(act1S);
+				
+				byte[] act1Cifrado = Seguridad.aE(act1B, cert.getOwnPublicKey(), Worker.RSA);
+				byte[] act1 = Cifrado.descifrar(act1Cifrado, cert.getOwnPrivateKey(), "RSA");
+				
+				byte[] cifrado1 = Cifrado.cifrar(cert.getServerPublicKey(), act1, Worker.RSA);
+				outputLine = Transformacion.toHexString(cifrado1);
 
-				boolean verificar = Seguridad.verifyIntegrity(numCifrado, cert.getOwnPrivateKey(), Seguridad.HMACMD5, num);
+				boolean verificar = Seguridad.verifyIntegrity(act1Cifrado, cert.getOwnPrivateKey(), Seguridad.HMACMD5, act1);
 
 				if(verificar) {
 					pOut.println(Worker.ESTADO + Worker.SEPARADOR + Worker.OK);
@@ -158,10 +165,14 @@ public class Cliente{
 				pOut.println(outputLine);
 				break;
 			case 6:
-				byte[] numCifrado2 = Transformacion.toByteArray(inputLine);
-				byte[] num2 = Cifrado.descifrar(numCifrado2, cert.getOwnPrivateKey(), "RSA");
+				
+				byte[] act2B = inputLine.getBytes();
+				String act2S = new String(act2B);
+				
+				byte[] actCifrado2 = Transformacion.toByteArray(act2S);
+				byte[] act2 = Cifrado.descifrar(actCifrado2, cert.getOwnPrivateKey(), "RSA");
 
-				byte[] cifrado = Cifrado.cifrar(cert.getServerPublicKey(), num2, "RSA");
+				byte[] cifrado = Cifrado.cifrar(cert.getServerPublicKey(), act2, "RSA");
 				outputLine = Transformacion.toHexString(cifrado);
 				estado++;
 				pOut.println(outputLine);
