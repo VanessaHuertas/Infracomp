@@ -9,6 +9,8 @@ import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.Date;
 
+import org.apache.commons.io.IOUtils;
+
 import seguridad.Certificado;
 import seguridad.Cifrado;
 import server.Seguridad;
@@ -117,13 +119,17 @@ public class Cliente{
 				}
 				else
 				{
-					outputLine = "ERROR-EsperabaCERTSRV";
+					outputLine = "ERROR-EsperabaAnuncioCERT";
 					pOut.println(outputLine);
 					estado = 0;
 				}
 				break;
 			case 4:
-				String pem = leerCertificado(pIn);		
+				byte[] bytesIn = IOUtils.toByteArray(iS);
+				String pem = new String(bytesIn);
+				pOut.println(pem);
+				
+//				String pem = leerCertificado(pIn);		
 				if (pem.startsWith("-----BEGIN CERTIFICATE-----") && cert.readCertificate(pem)) 
 				{
 					byte[] act1Bytes = certString.getBytes();
@@ -134,7 +140,7 @@ public class Cliente{
 				} 
 				else 
 				{
-					outputLine = "ERROR-EsperabaCertificado";
+					outputLine = "ERROR-EsperabaCertificado. Se recibió: " + pem;
 					estado = 0;
 				}
 				pOut.println(outputLine);
