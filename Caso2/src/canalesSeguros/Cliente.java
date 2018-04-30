@@ -1,16 +1,12 @@
 package canalesSeguros;
 
 import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.ObjectInputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.net.Socket;
-import java.security.cert.CertificateFactory;
-import java.security.cert.X509Certificate;
 import java.util.Date;
 
 import seguridad.Certificado;
@@ -24,7 +20,7 @@ public class Cliente{
 	private static final String IP = "localhost"; 
 	private static Certificado cert;
 
-	public static void main( String[] args ){
+	public static void main( String[] args )throws Exception {
 
 		cert = new Certificado();
 		Socket socket = null;
@@ -43,29 +39,23 @@ public class Cliente{
 				new InputStreamReader(System.in));
 		try
 		{
-			comenzar(lector, escritor, socket, socket.getOutputStream());
+			comenzar(lector, escritor, socket.getInputStream(), socket.getOutputStream());			
 		}
 		catch (Exception e)
 		{
 			e.printStackTrace();
 		}
-		finally {
-			try {
-				escritor.close();
-				lector.close();
-				stdIn.close();
-				// cierre el socket y la entrada estándar
-				socket.close();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
+
+		escritor.close();
+		lector.close();
+		stdIn.close();
+		// cierre el socket y la entrada estándar
+		socket.close();
+
 	}
 
-	public static void comenzar(BufferedReader pIn, PrintWriter pOut, Socket socket, OutputStream oS) throws Exception 
+	public static void comenzar(BufferedReader pIn, PrintWriter pOut, InputStream iS, OutputStream oS) throws Exception 
 	{
-		byte[] reto = new byte[1];
-
 		String inputLine, outputLine;
 		String certString = "";
 		int estado = 0;
@@ -73,8 +63,7 @@ public class Cliente{
 		pOut.println("HOLA");
 
 		boolean finalizo = false;
-		inputLine = pIn.readLine();
-		while (!finalizo && inputLine != null) 
+		while (!finalizo && (inputLine = pIn.readLine()) != null) 
 		{
 			switch (estado) {
 			case 0:
@@ -91,7 +80,6 @@ public class Cliente{
 				pOut.println(outputLine);
 				break;
 			case 1:
-				inputLine = pIn.readLine();
 				if(inputLine.equalsIgnoreCase("ESTADO:OK"))
 				{
 					outputLine = "CERTCLNT";
@@ -109,7 +97,6 @@ public class Cliente{
 				break;
 				
 			case 2:
-				inputLine = pIn.readLine();
 				if(inputLine.equalsIgnoreCase("ESTADO:OK"))
 				{
 					estado++;
@@ -122,36 +109,33 @@ public class Cliente{
 				}
 				break;
 			case 3:
-				inputLine = pIn.readLine();
 				if(inputLine.equalsIgnoreCase("CERTSRV"))
 				{
 					estado++;
 				}
 				else
 				{
-					outputLine = "ERROR-EsperabaAnuncioCERT";
+					outputLine = "ERROR-EsperabaCERTSRV";
 					pOut.println(outputLine);
 					estado = 0;
 				}
 				break;
 			case 4:
-				InputStream inStream = socket.getInputStream();
-				X509Certificate serverCertificate = null;
-				byte[] buffer = new byte[1024];
-				inStream = new ByteArrayInputStream(buffer);
-				CertificateFactory cf = CertificateFactory.getInstance("X.509");
-				serverCertificate = (X509Certificate)cf.generateCertificate(inStream);
-				cert.setServer(serverCertificate);
-				if(serverCertificate != null) {
-					outputLine = "Estado:OK";
-				}
+				String pem = leerCertificado(pIn);	
+				if (pem.startsWith("-----BEGIN CERTIFICATE-----") && cert.readCertificate(pem)) 
+				{
+					byte[] act1Bytes = certString.getBytes();
+
+					byte[] act1Cifrado = Seguridad.aE(act1Bytes, cert.getServerPublicKey(), Seguridad.RSA);
+					String act1CifradoStr = Transformacion.toHexString(act1Cifrado);
+					outputLine = "OK";
+				} 
 				else 
 				{
-					outputLine = "ERROR-EsperabaCertificadoValido";
+					outputLine = "ERROR-EsperabaCertificado";
 					estado = 0;
 				}
 				pOut.println(outputLine);
-				estado++;
 				break;
 			case 5:
 				inputLine = pIn.readLine();
@@ -179,7 +163,7 @@ public class Cliente{
 				pOut.println(outputLine);
 				break;
 			case 6:
-				inputLine = pIn.readLine();
+				
 				byte[] act2B = inputLine.getBytes();
 				String act2S = new String(act2B);
 				
@@ -192,7 +176,6 @@ public class Cliente{
 				pOut.println(outputLine);
 				break;
 			case 7:
-				inputLine = pIn.readLine();
 				String[] input = inputLine.split(":");
 				byte[] hexInput1 = Transformacion.toByteArray(input[0]);
 				byte[] hexInput2 = Transformacion.toByteArray(input[1]);
