@@ -121,4 +121,8 @@ public class Certificado {
 	{
 		return llaveSimetrica;
 	}
+	
+	public void setServer(java.security.cert.X509Certificate server) {
+		this.server = server;
+	}
 }
