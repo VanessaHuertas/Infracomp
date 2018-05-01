@@ -232,11 +232,13 @@ public class Cliente{
 	
 	public void ejecutar() {
 //		cert = new Certificado();
+//		medidor = new EscritorIndicadores();
 //		Socket socket = null;
 //		PrintWriter escritor = null;
 //		BufferedReader lector = null;
 //		try {
-//			socket = new Socket(IP, 8084);
+//			socket = new Socket();
+//			socket.connect(new InetSocketAddress(IP, 9200),50000000);
 //			escritor = new PrintWriter(socket.getOutputStream(), true);
 //			lector = new BufferedReader(new InputStreamReader(
 //					socket.getInputStream()));
