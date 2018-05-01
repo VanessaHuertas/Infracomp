@@ -14,6 +14,7 @@ import java.util.Date;
 
 import org.bouncycastle.util.encoders.Hex;
 
+import mediciones.EscritorIndicadores;
 import seguridad.Certificado;
 import seguridad.Cifrado;
 import server.Seguridad;
@@ -23,6 +24,7 @@ public class Cliente{
 
 	private static final String IP = "localhost"; 
 	private static Certificado cert;
+	private EscritorIndicadores indicador;
 
 	public static void main( String[] args ){
 
@@ -226,5 +228,42 @@ public class Cliente{
 				break;
 			}
 		}
+	}
+	
+	public void ejecutar() {
+//		cert = new Certificado();
+//		Socket socket = null;
+//		PrintWriter escritor = null;
+//		BufferedReader lector = null;
+//		try {
+//			socket = new Socket(IP, 8084);
+//			escritor = new PrintWriter(socket.getOutputStream(), true);
+//			lector = new BufferedReader(new InputStreamReader(
+//					socket.getInputStream()));
+//		} catch (Exception e) {
+//			System.err.println("Exception: " + e.getMessage());
+//			System.exit(1);
+//		}
+//		BufferedReader stdIn = new BufferedReader(
+//				new InputStreamReader(System.in));
+//		try
+//		{
+//			comenzar(lector, escritor, socket, socket.getOutputStream());
+//		}
+//		catch (Exception e)
+//		{
+//			e.printStackTrace();
+//		}
+//		finally {
+//			try {
+//				escritor.close();
+//				lector.close();
+//				stdIn.close();
+//				// cierre el socket y la entrada estándar
+//				socket.close();
+//			} catch (IOException e) {
+//				e.printStackTrace();
+//			}
+//		}
 	}
 }
