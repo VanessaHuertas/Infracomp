@@ -79,17 +79,18 @@ public class Cifrado {
 		}
 	}
 
-	//Lo pusimos como long, pero puede que la cedula sea String
-	public static byte[] getKeyedDigest(byte[] cedula, Key key) {
+	//Lo pusimos como long, pero puede que sea String
+	public static byte[] getKeyedDigest(byte[] array, Key key) {
 		try {
 	        Mac mac = Mac.getInstance("HMACMD5");
 	        mac.init(key);
-	        byte[] bytes = mac.doFinal(cedula);
+	        byte[] bytes = mac.doFinal(array);
 	        return bytes;
 		} catch (Exception e) {
 			return null;
 		}
 	}
+	
 	public static boolean verificar(byte[] codigo, byte[] calculado){
 		boolean rta = false;
 		if(codigo.length != calculado.length){
