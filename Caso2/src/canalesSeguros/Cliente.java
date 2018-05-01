@@ -152,28 +152,22 @@ public class Cliente{
 				estado++;
 				break;
 			case 5:
-				inputLine = pIn.readLine();
+				inputLine = pIn.readLine();				
+				if ( inputLine.startsWith("INICIO:") ) {
+					outputLine = "ACT1";
+				}else {
+					outputLine = "";	
+				}
+				
 				byte[] act1B = inputLine.getBytes();
 				String act1S = new String(act1B);
-				System.out.println(act1S);
 				
 				byte[] act1Cifrado = Seguridad.aE(act1B, cert.getOwnPublicKey(), "RSA");
 				byte[] act1 = Cifrado.descifrar(act1Cifrado, cert.getOwnPrivateKey(), "RSA");
 				
 				byte[] cifrado1 = Cifrado.cifrar(cert.getServerPublicKey(), act1, "RSA");
-				outputLine = Transformacion.toHexString(cifrado1);
+//				outputLine = Transformacion.toHexString(cifrado1);
 
-				boolean verificar = Seguridad.verifyIntegrity(act1Cifrado, cert.getOwnPrivateKey(), Seguridad.HMACMD5, act1);
-
-				if(verificar) {
-					pOut.println("Estado:OK");
-					outputLine= "OK";
-					estado++;
-				}else {
-					pOut.println("ERROR:No se cumple con integridad de respuesta");
-					estado = 0;
-					outputLine = "ERROR";
-				}
 				pOut.println(outputLine);
 				break;
 			case 6:
