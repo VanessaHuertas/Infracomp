@@ -5,7 +5,6 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.ObjectInputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.net.Socket;
@@ -13,11 +12,12 @@ import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.Date;
 
+import org.bouncycastle.util.encoders.Hex;
+
 import seguridad.Certificado;
 import seguridad.Cifrado;
 import server.Seguridad;
 import server.Transformacion;
-import server.Worker;
 
 public class Cliente{
 
@@ -66,7 +66,7 @@ public class Cliente{
 	{
 		String inputLine, outputLine;
 		int estado = 0;
-		
+
 		pOut.println("HOLA");
 
 		boolean finalizo = false;
@@ -100,11 +100,11 @@ public class Cliente{
 					estado = 0;
 				}
 				pOut.println(outputLine);
-				
+
 				byte[] bytes = cert.createBytes(new Date(), new Date(), "RSA", 512, "SHA1withRSA");
 				oS.write(bytes);
 				break;
-				
+
 			case 2:
 				inputLine = pIn.readLine();
 				if(inputLine.equalsIgnoreCase("ESTADO:OK"))
@@ -152,48 +152,63 @@ public class Cliente{
 				estado++;
 				break;
 			case 5:
-				inputLine = pIn.readLine();				
-				if ( inputLine.startsWith("INICIO:") ) {
-					outputLine = "ACT1";
-				}else {
-					outputLine = "";	
-				}
-				
-				byte[] act1B = inputLine.getBytes();
-				String act1S = new String(act1B);
-				
-				byte[] act1Cifrado = Seguridad.aE(act1B, cert.getOwnPublicKey(), "RSA");
-				byte[] act1 = Cifrado.descifrar(act1Cifrado, cert.getOwnPrivateKey(), "RSA");
-				
-				byte[] cifrado1 = Cifrado.cifrar(cert.getServerPublicKey(), act1, "RSA");
-//				outputLine = Transformacion.toHexString(cifrado1);
+				inputLine = pIn.readLine();	
 
-				pOut.println(outputLine);
+				if ( inputLine.startsWith("INICIO") ) {
+					outputLine = "ACT1";
+					pOut.println(outputLine);
+					
+					byte[] act1B = inputLine.getBytes();
+
+					byte[] act1Cifrado = Seguridad.aE(act1B, cert.getOwnPublicKey(), "RSA");
+
+					byte[] act1 = Cifrado.descifrar(act1Cifrado, cert.getOwnPrivateKey(), "RSA");
+					
+					byte[] cifrado1 = Cifrado.cifrar(cert.getServerPublicKey(), act1, "RSA");
+					String cifrado1String = new String(cifrado1);
+					
+					String transformacion = new String(Hex.decode(cifrado1String));
+					
+					outputLine = "ACT1:" + transformacion;
+					pOut.println(outputLine);
+					estado++;
+				}else {
+					outputLine = "ERROR-EsperabaCifradoValido";	
+					pOut.println(outputLine);
+					estado = 0;
+				}
 				break;
 			case 6:
-				inputLine = pIn.readLine();
-				byte[] act2B = inputLine.getBytes();
-				String act2S = new String(act2B);
-				
-				byte[] actCifrado2 = Transformacion.toByteArray(act2S);
-				byte[] act2 = Cifrado.descifrar(actCifrado2, cert.getOwnPrivateKey(), "RSA");
+				inputLine = pIn.readLine();	
 
-				byte[] cifrado = Cifrado.cifrar(cert.getServerPublicKey(), act2, "RSA");
-				outputLine = Transformacion.toHexString(cifrado);
-				estado++;
-				pOut.println(outputLine);
+				if ( inputLine.startsWith("ACT1") ) {
+					outputLine = "ACT2";
+					pOut.println(outputLine);
+					
+					String[] in = inputLine.split(":");
+					
+					byte[] act2B = Transformacion.toByteArray(in[1]);
+					byte[] act2Descifrado = Cifrado.descifrarLS(cert.getLlaveSimetrica(), act2B);
+					byte[] act2Hash = Cifrado.getKeyedDigest(act2Descifrado, cert.getLlaveSimetrica());
+					String cifrado2String = new String(act2Hash);
+					
+					String transformacion = new String(Hex.decode(cifrado2String));
+					
+					outputLine = "ACT2:" + transformacion;
+					pOut.println(outputLine);
+					estado++;
+				}else {
+					outputLine = "ERROR-EsperabaActividadValida";	
+					pOut.println(outputLine);
+					estado = 0;
+				}
 				break;
 			case 7:
 				inputLine = pIn.readLine();
 				String[] input = inputLine.split(":");
-				byte[] hexInput1 = Transformacion.toByteArray(input[0]);
 				byte[] hexInput2 = Transformacion.toByteArray(input[1]);
-				byte[] resLS = Cifrado.descifrarLS(cert.getLlaveSimetrica(), hexInput1);
-
 				byte[] resHashLS = Cifrado.descifrarLS(cert.getLlaveSimetrica(), hexInput2);
-
-				byte[] hashCalculado = Cifrado.getKeyedDigest(resLS, cert.getLlaveSimetrica());
-
+				byte[] hashCalculado = Cifrado.getKeyedDigest(resHashLS, cert.getLlaveSimetrica());
 				boolean verificarA = Seguridad.verifyIntegrity(resHashLS, cert.getOwnPrivateKey(), Seguridad.HMACMD5, hashCalculado);
 
 				if(verificarA) {
