@@ -64,10 +64,7 @@ public class Cliente{
 
 	public static void comenzar(BufferedReader pIn, PrintWriter pOut, Socket socket, OutputStream oS) throws Exception 
 	{
-		byte[] reto = new byte[1];
-
 		String inputLine, outputLine;
-		String certString = "";
 		int estado = 0;
 		
 		pOut.println("HOLA");
@@ -138,6 +135,7 @@ public class Cliente{
 				InputStream inStream = socket.getInputStream();
 				X509Certificate serverCertificate = null;
 				byte[] buffer = new byte[1024];
+				inStream.read(buffer);
 				inStream = new ByteArrayInputStream(buffer);
 				CertificateFactory cf = CertificateFactory.getInstance("X.509");
 				serverCertificate = (X509Certificate)cf.generateCertificate(inStream);
@@ -159,22 +157,22 @@ public class Cliente{
 				String act1S = new String(act1B);
 				System.out.println(act1S);
 				
-				byte[] act1Cifrado = Seguridad.aE(act1B, cert.getOwnPublicKey(), Worker.RSA);
+				byte[] act1Cifrado = Seguridad.aE(act1B, cert.getOwnPublicKey(), "RSA");
 				byte[] act1 = Cifrado.descifrar(act1Cifrado, cert.getOwnPrivateKey(), "RSA");
 				
-				byte[] cifrado1 = Cifrado.cifrar(cert.getServerPublicKey(), act1, Worker.RSA);
+				byte[] cifrado1 = Cifrado.cifrar(cert.getServerPublicKey(), act1, "RSA");
 				outputLine = Transformacion.toHexString(cifrado1);
 
 				boolean verificar = Seguridad.verifyIntegrity(act1Cifrado, cert.getOwnPrivateKey(), Seguridad.HMACMD5, act1);
 
 				if(verificar) {
-					pOut.println(Worker.ESTADO + Worker.SEPARADOR + Worker.OK);
-					outputLine= Worker.OK;
+					pOut.println("Estado:OK");
+					outputLine= "OK";
 					estado++;
 				}else {
-					pOut.println(Worker.ERROR + Worker.SEPARADOR + "No se cumple con integridad de respuesta");
+					pOut.println("ERROR:No se cumple con integridad de respuesta");
 					estado = 0;
-					outputLine = Worker.ERROR;
+					outputLine = "ERROR";
 				}
 				pOut.println(outputLine);
 				break;
@@ -205,11 +203,11 @@ public class Cliente{
 				boolean verificarA = Seguridad.verifyIntegrity(resHashLS, cert.getOwnPrivateKey(), Seguridad.HMACMD5, hashCalculado);
 
 				if(verificarA) {
-					pOut.println(Worker.ESTADO + Worker.SEPARADOR + Worker.OK);
+					pOut.println("ESTADO:OK");
 					System.out.println("El protocolo termina de manera correcta.");
 					finalizo = true;
 				}else {
-					outputLine  = Worker.ERROR;
+					outputLine  = "ERROR";
 				}
 				break;
 			default:
@@ -219,27 +217,5 @@ public class Cliente{
 				break;
 			}
 		}
-
-	}
-
-	private static String leerCertificado(BufferedReader pIn) throws IOException
-	{
-		String pem = "";
-		String input = pIn.readLine();
-		if(input.equalsIgnoreCase("-----BEGIN CERTIFICATE-----"))
-		{
-			boolean finish = false;
-			pem += input + System.lineSeparator();
-			while(!finish)
-			{
-				input = pIn.readLine();
-				pem += input + System.lineSeparator();
-				if(input.equalsIgnoreCase("-----END CERTIFICATE-----"))
-				{
-					finish = true;
-				}
-			}
-		}
-		return pem;
 	}
 }
