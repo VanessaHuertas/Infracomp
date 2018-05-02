@@ -180,7 +180,7 @@ public class Cliente{
 		BufferedReader lector = null;
 		try {
 			socket = new Socket();
-			socket.connect(new InetSocketAddress(IP, 9200),50000000);
+			socket.connect(new InetSocketAddress(IP, 8084),50000000);
 			escritor = new PrintWriter(socket.getOutputStream(), true);
 			lector = new BufferedReader(new InputStreamReader(
 					socket.getInputStream()));

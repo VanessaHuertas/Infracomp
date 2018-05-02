@@ -1,5 +1,6 @@
 package mediciones;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 
@@ -58,10 +59,10 @@ public class EscritorIndicadores
 	public void imprimirResultado()
 	{
 		try{
-		    PrintWriter writer = new PrintWriter("datos/resultado_0"+Generator.ai.getAndIncrement()+".txt", "UTF-8");
-		    writer.println(autServidor+":"+autCliente+":"+respuesta);
+			File file = new File("datos/resultado_0"+Generator.ai.getAndIncrement()+".txt");
+		    PrintWriter writer = new PrintWriter(file.getAbsolutePath(), "UTF-8");
 		    String error = fallo? "Fallido":"Correcto";
-		    writer.println(error);
+		    writer.println(autServidor+";"+autCliente+";"+respuesta+";"+error);
 		    writer.close();
 		} catch (IOException e) {
 		   // 
