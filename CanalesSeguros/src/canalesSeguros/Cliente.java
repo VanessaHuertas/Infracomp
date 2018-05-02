@@ -217,7 +217,7 @@ public class Cliente{
 
 	public void ejecutar() {
 		//		cert = new Certificado();
-		//		medidor = new EscritorIndicadores();
+		//		indicador = new EscritorIndicadores();
 		//		Socket socket = null;
 		//		PrintWriter escritor = null;
 		//		BufferedReader lector = null;
