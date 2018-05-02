@@ -16,13 +16,9 @@ import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 import javax.xml.bind.DatatypeConverter;
 
-import org.bouncycastle.util.encoders.Hex;
-
 import mediciones.EscritorIndicadores;
 import seguridad.Certificado;
 import seguridad.Cifrado;
-import server.Seguridad;
-import server.Transformacion;
 
 public class Cliente{
 
@@ -172,7 +168,7 @@ public class Cliente{
 					String llaveSimetrica = inputLine.split(":")[1];
 					byte[] bytesCifrados = DatatypeConverter.parseHexBinary(llaveSimetrica);
 					byte[] bytesLS = Cifrado.descifrar(bytesCifrados, cert.getOwnPrivateKey(), "RSA");
-					SecretKey secretKey = new SecretKeySpec(bytesLS, 0, bytesLS.length, "RSA");
+					SecretKey secretKey = new SecretKeySpec(bytesLS, "AES");
 					cert.setLlaveSimetrica(secretKey);
 					estado++;
 				}else {
@@ -182,48 +178,27 @@ public class Cliente{
 				}
 				break;
 			case 6:
-				inputLine = pIn.readLine();	
-
-				if ( inputLine.startsWith("ACT1") ) {
-					outputLine = "ACT2";
-					pOut.println(outputLine);
-
-					String[] in = inputLine.split(":");
-
-					byte[] act2B = Transformacion.toByteArray(in[1]);
-					byte[] act2Descifrado = Cifrado.descifrarLS(cert.getLlaveSimetrica(), act2B);
-					byte[] act2Hash = Cifrado.getKeyedDigest(act2Descifrado, cert.getLlaveSimetrica());
-					String cifrado2String = new String(act2Hash);
-
-					String transformacion = new String(Hex.decode(cifrado2String));
-
-					outputLine = "ACT2:" + transformacion;
-					pOut.println(outputLine);
-					estado++;
-				}else {
-					outputLine = "ERROR-EsperabaActividadValida";	
-					pOut.println(outputLine);
-					estado = 0;
-				}
+				String coors1 = "41 24.2028, 2 10.4418";
+				byte[] bytesEncCoors1 = Cifrado.cifrarLS(cert.getLlaveSimetrica(), coors1.getBytes());
+				String hexCoors1 = DatatypeConverter.printHexBinary(bytesEncCoors1);
+				outputLine = "ACT1:" + new String(hexCoors1);
+				pOut.println(outputLine);
+				estado++;
 				//indicador.startRespuesta();
 				break;
 			case 7:
-				inputLine = pIn.readLine();
-				String[] input = inputLine.split(":");
-				byte[] hexInput2 = Transformacion.toByteArray(input[1]);
-				byte[] resHashLS = Cifrado.descifrarLS(cert.getLlaveSimetrica(), hexInput2);
-				byte[] hashCalculado = Cifrado.getKeyedDigest(resHashLS, cert.getLlaveSimetrica());
-				boolean verificarA = Seguridad.verifyIntegrity(resHashLS, cert.getOwnPrivateKey(), Seguridad.HMACMD5, hashCalculado);
-
-				if(verificarA) {
-					//indicador.finishAutServidor();
-					//indicador.finishRespuesta();
-					pOut.println("ESTADO:OK");
-					System.out.println("El protocolo termina de manera correcta.");
-					finalizo = true;
-				}else {
-					outputLine  = "ERROR";
-				}
+				String coors2 = "41 24.2028, 2 10.4418";
+				byte[] bytesEncCoors2 = Cifrado.getKeyedDigest(coors2.getBytes(), cert.getLlaveSimetrica());
+				byte[] act2Asm = Cifrado.cifrar(cert.getServerPublicKey(), bytesEncCoors2, "RSA");
+				String hexCoors2 = DatatypeConverter.printHexBinary(act2Asm);
+				outputLine = "ACT2:" + new String(hexCoors2);
+				pOut.println(outputLine);
+				estado++;
+				//indicador.startRespuesta();
+				//indicador.finishAutServidor();
+				//indicador.finishRespuesta();
+				System.out.println("El protocolo termina de manera correcta.");
+				finalizo = true;
 				break;
 			default:
 				outputLine = "ERROR";
