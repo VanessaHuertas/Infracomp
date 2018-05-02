@@ -64,7 +64,8 @@ public class EscritorIndicadores
 		    writer.println(error);
 		    writer.close();
 		} catch (IOException e) {
-		   // do something
+		   // 
+			e.printStackTrace();
 		}
 	}
 }

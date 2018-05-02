@@ -23,6 +23,7 @@ import seguridad.Certificado;
 import seguridad.Cifrado;
 import server.Seguridad;
 import server.Transformacion;
+import util.Converter;
 
 public class Cliente{
 
@@ -60,7 +61,7 @@ public class Cliente{
 				escritor.close();
 				lector.close();
 				stdIn.close();
-				// cierre el socket y la entrada estándar
+				// cierre el socket y la entrada estï¿½ndar
 				socket.close();
 			} catch (IOException e) {
 				e.printStackTrace();
@@ -105,6 +106,7 @@ public class Cliente{
 					outputLine = "ERROR-EsperabaOk";
 					estado = 0;
 				}
+				//indicador.startAutServidor();
 				pOut.println(outputLine);
 
 				byte[] bytes = cert.createBytes(new Date(), new Date(), "RSA", 512, "SHA1withRSA");
@@ -147,19 +149,23 @@ public class Cliente{
 				serverCertificate = (X509Certificate)cf.generateCertificate(inStream);
 				cert.setServer(serverCertificate);
 				if(serverCertificate != null) {
+					//indicador.finishAutServidor();
+					byte[] llaveCifrada = Converter.hexStringToByteArray(inputLine);
+					byte[] llaveSimetrica = Cifrado.descifrar(llaveCifrada, cert.getOwnPrivateKey(), "RSA");
+					cert.setLlaveSinmetrica(llaveSimetrica);
 					outputLine = "Estado:OK";
 				}
 				else 
 				{
 					outputLine = "ERROR-EsperabaCertificadoValido";
 					estado = 0;
-				}
+				}				
 				pOut.println(outputLine);
 				estado++;
 				break;
 			case 5:
 				inputLine = pIn.readLine();	
-
+				//indicador.startAutServidor();
 				if ( inputLine.startsWith("INICIO") ) {
 //					outputLine = "ACT1";
 //					pOut.println(outputLine);
@@ -186,16 +192,16 @@ public class Cliente{
 				if ( inputLine.startsWith("ACT1") ) {
 					outputLine = "ACT2";
 					pOut.println(outputLine);
-					
+
 					String[] in = inputLine.split(":");
-					
+
 					byte[] act2B = Transformacion.toByteArray(in[1]);
 					byte[] act2Descifrado = Cifrado.descifrarLS(cert.getLlaveSimetrica(), act2B);
 					byte[] act2Hash = Cifrado.getKeyedDigest(act2Descifrado, cert.getLlaveSimetrica());
 					String cifrado2String = new String(act2Hash);
-					
+
 					String transformacion = new String(Hex.decode(cifrado2String));
-					
+
 					outputLine = "ACT2:" + transformacion;
 					pOut.println(outputLine);
 					estado++;
@@ -204,6 +210,7 @@ public class Cliente{
 					pOut.println(outputLine);
 					estado = 0;
 				}
+				//indicador.startRespuesta();
 				break;
 			case 7:
 				inputLine = pIn.readLine();
@@ -214,6 +221,8 @@ public class Cliente{
 				boolean verificarA = Seguridad.verifyIntegrity(resHashLS, cert.getOwnPrivateKey(), Seguridad.HMACMD5, hashCalculado);
 
 				if(verificarA) {
+					//indicador.finishAutServidor();
+					//indicador.finishRespuesta();
 					pOut.println("ESTADO:OK");
 					System.out.println("El protocolo termina de manera correcta.");
 					finalizo = true;
@@ -228,44 +237,50 @@ public class Cliente{
 				break;
 			}
 		}
+		
+		if(finalizo != true)
+		{
+			//indicador.registrarFallo();
+		}
+		//indicador.imprimirResultado();
 	}
-	
+
 	public void ejecutar() {
-//		cert = new Certificado();
-//		medidor = new EscritorIndicadores();
-//		Socket socket = null;
-//		PrintWriter escritor = null;
-//		BufferedReader lector = null;
-//		try {
-//			socket = new Socket();
-//			socket.connect(new InetSocketAddress(IP, 9200),50000000);
-//			escritor = new PrintWriter(socket.getOutputStream(), true);
-//			lector = new BufferedReader(new InputStreamReader(
-//					socket.getInputStream()));
-//		} catch (Exception e) {
-//			System.err.println("Exception: " + e.getMessage());
-//			System.exit(1);
-//		}
-//		BufferedReader stdIn = new BufferedReader(
-//				new InputStreamReader(System.in));
-//		try
-//		{
-//			comenzar(lector, escritor, socket, socket.getOutputStream());
-//		}
-//		catch (Exception e)
-//		{
-//			e.printStackTrace();
-//		}
-//		finally {
-//			try {
-//				escritor.close();
-//				lector.close();
-//				stdIn.close();
-//				// cierre el socket y la entrada estándar
-//				socket.close();
-//			} catch (IOException e) {
-//				e.printStackTrace();
-//			}
-//		}
+		//		cert = new Certificado();
+		//		medidor = new EscritorIndicadores();
+		//		Socket socket = null;
+		//		PrintWriter escritor = null;
+		//		BufferedReader lector = null;
+		//		try {
+		//			socket = new Socket();
+		//			socket.connect(new InetSocketAddress(IP, 9200),50000000);
+		//			escritor = new PrintWriter(socket.getOutputStream(), true);
+		//			lector = new BufferedReader(new InputStreamReader(
+		//					socket.getInputStream()));
+		//		} catch (Exception e) {
+		//			System.err.println("Exception: " + e.getMessage());
+		//			System.exit(1);
+		//		}
+		//		BufferedReader stdIn = new BufferedReader(
+		//				new InputStreamReader(System.in));
+		//		try
+		//		{
+		//			comenzar(lector, escritor, socket, socket.getOutputStream());
+		//		}
+		//		catch (Exception e)
+		//		{
+		//			e.printStackTrace();
+		//		}
+		//		finally {
+		//			try {
+		//				escritor.close();
+		//				lector.close();
+		//				stdIn.close();
+		//				// cierre el socket y la entrada estï¿½ndar
+		//				socket.close();
+		//			} catch (IOException e) {
+		//				e.printStackTrace();
+		//			}
+		//		}
 	}
 }
