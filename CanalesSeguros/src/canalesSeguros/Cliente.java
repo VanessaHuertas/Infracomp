@@ -119,7 +119,7 @@ public class Cliente{
 				break;
 			case 5:
 				inputLine = pIn.readLine();	
-				indicador.startAutServidor();
+				indicador.finishAutServidor();
 				if ( inputLine.startsWith("INICIO") ) {
 
 					String llaveSimetrica = inputLine.split(":")[1];
@@ -133,12 +133,14 @@ public class Cliente{
 					pOut.println(outputLine);
 					estado = 0;
 				}
+				
 				break;
 			case 6:
 				String coors1 = "41 24.2028, 2 10.4418";
 				byte[] bytesEncCoors1 = Cifrado.cifrarLS(cert.getLlaveSimetrica(), coors1.getBytes());
 				String hexCoors1 = DatatypeConverter.printHexBinary(bytesEncCoors1);
 				outputLine = "ACT1:" + new String(hexCoors1);
+				indicador.startAutCliente();
 				pOut.println(outputLine);
 				estado++;
 				indicador.startRespuesta();
@@ -151,11 +153,10 @@ public class Cliente{
 				outputLine = "ACT2:" + new String(hexCoors2);
 				pOut.println(outputLine);
 				estado++;
-				indicador.startRespuesta();
-				indicador.finishAutServidor();
-				indicador.finishRespuesta();
 				System.out.println("El protocolo termina de manera correcta.");
 				finalizo = true;
+				indicador.finishAutCliente();				
+				indicador.finishRespuesta();
 				break;
 			default:
 				outputLine = "ERROR";
