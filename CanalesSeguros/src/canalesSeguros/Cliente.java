@@ -23,7 +23,6 @@ import seguridad.Certificado;
 import seguridad.Cifrado;
 import server.Seguridad;
 import server.Transformacion;
-import util.Converter;
 
 public class Cliente{
 
@@ -149,10 +148,6 @@ public class Cliente{
 				serverCertificate = (X509Certificate)cf.generateCertificate(inStream);
 				cert.setServer(serverCertificate);
 				if(serverCertificate != null) {
-					//indicador.finishAutServidor();
-					byte[] llaveCifrada = Converter.hexStringToByteArray(inputLine);
-					byte[] llaveSimetrica = Cifrado.descifrar(llaveCifrada, cert.getOwnPrivateKey(), "RSA");
-					cert.setLlaveSinmetrica(llaveSimetrica);
 					outputLine = "Estado:OK";
 				}
 				else 
