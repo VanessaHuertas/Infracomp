@@ -12,6 +12,10 @@ import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.util.Date;
 
+import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
+import javax.xml.bind.DatatypeConverter;
+
 import org.bouncycastle.util.encoders.Hex;
 
 import mediciones.EscritorIndicadores;
@@ -157,22 +161,18 @@ public class Cliente{
 				inputLine = pIn.readLine();	
 
 				if ( inputLine.startsWith("INICIO") ) {
-					outputLine = "ACT1";
-					pOut.println(outputLine);
+//					outputLine = "ACT1";
+//					pOut.println(outputLine);
 					
-					byte[] act1B = inputLine.getBytes();
+//					byte[] act1B = inputLine.getBytes();
 
-					byte[] act1Cifrado = Seguridad.aE(act1B, cert.getOwnPublicKey(), "RSA");
-
-					byte[] act1 = Cifrado.descifrar(act1Cifrado, cert.getOwnPrivateKey(), "RSA");
+//					byte[] act1Cifrado = Seguridad.aE(act1B, cert.getOwnPublicKey(), "RSA");
 					
-					byte[] cifrado1 = Cifrado.cifrar(cert.getServerPublicKey(), act1, "RSA");
-					String cifrado1String = new String(cifrado1);
-					
-					String transformacion = new String(Hex.decode(cifrado1String));
-					
-					outputLine = "ACT1:" + transformacion;
-					pOut.println(outputLine);
+					String llaveSimetrica = inputLine.split(":")[1];
+					byte[] bytesCifrados = DatatypeConverter.parseHexBinary(llaveSimetrica);
+					byte[] bytesLS = Cifrado.descifrar(bytesCifrados, cert.getOwnPrivateKey(), "RSA");
+					SecretKey secretKey = new SecretKeySpec(bytesLS, 0, bytesLS.length, "RSA");
+					cert.setLlaveSimetrica(secretKey);
 					estado++;
 				}else {
 					outputLine = "ERROR-EsperabaCifradoValido";	

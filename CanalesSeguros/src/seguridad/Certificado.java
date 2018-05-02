@@ -116,6 +116,11 @@ public class Certificado {
 		SecretKeySpec sk = new SecretKeySpec(llave, "AES");
 		llaveSimetrica = sk;
 	}
+	
+	public void setLlaveSimetrica(SecretKey key)
+	{
+		llaveSimetrica = key;
+	}
 
 	public SecretKey getLlaveSimetrica()
 	{
