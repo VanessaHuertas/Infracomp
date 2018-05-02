@@ -1,7 +1,5 @@
 package gLoad;
 
-
-
 import java.util.concurrent.atomic.AtomicInteger;
 
 import uniandes.gload.core.LoadGenerator;
